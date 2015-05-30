@@ -1,22 +1,13 @@
 function stack = params2stack(params, ei)
 
 dim = ei.dimensionality;
-depth = ei.depth;
-
-stack = cell(depth,1); 
-
-for d = 1:depth
-    % Create layer d
-    stack{d} = struct;
-    
-    s = (4*dim^2 + 3*dim)*(d-1) + 1;
-    e = s + 4*dim^2 + 3*dim;
-    
-    stack{d}.W1 = reshape(params(s : s+2*dim^2-1), dim, 2*dim); 
-    stack{d}.b1 = reshape(params(s+2*dim^2 : s+2*dim^2+dim-1), dim, 1); 
-    stack{d}.W2 = reshape(params(s+2*dim^2+dim : s+4*dim^2+dim-1), 2*dim, dim); 
-    stack{d}.b2 = reshape(params(e-2*dim+1 : e), 2*dim, 1); 
-    
-end
-
-end
+out = ei.outputsize;
+l = size(params,1); 
+stack = struct;
+stack.W1 = reshape(params(1 : 2*dim^2), dim, 2*dim); 
+stack.b1 = reshape(params(2*dim^2+1 : 2*dim^2+dim), dim, 1); 
+stack.W2 = reshape(params(2*dim^2+dim+1 : 4*dim^2+dim), 2*dim, dim); 
+size(params(4*dim^2+dim+1 : 4*dim^2+3^dim))
+stack.b2 = reshape(params(4*dim^2+dim+1 : 4*dim^2+3*dim), 2*dim, 1); 
+stack.Wl = reshape(params(4*dim^2+3*dim+1 : 4*dim^2+3*dim+out*dim), out, dim);
+stack.bl = reshape(params(4*dim^2+3*dim+out*dim+1:l), out, 1);
