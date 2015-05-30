@@ -47,3 +47,42 @@ options.display = 'iter';
 % Optimization method, can try different methods for minfunc as well
 options.Method = 'lbfgs';
 
+%%%%%%%%%%%%%%%%%%%%%%%%
+% Read the dataset
+%%%%%%%%%%%%%%%%%%%%%%%%
+params_dataset = struct;
+
+% Setting the path for the dataset
+params_dataset.path = '..\Dataset\';
+
+% Setting filenames for the positive and negative datasets
+params_dataset.filename_positive = 'rt-polarity.pos';
+params_dataset.filename_negative = 'rt-polarity.neg';
+
+% Setting the paths for the binarized positive and negative reviews
+params_dataset.pos_binarized = 'rt-polarity_pos_binarized.mat';
+params_dataset.neg_binarized = 'rt-polarity_neg_binarized.mat';
+params_dataset.cv_obj = 'cv_obj.mat';
+
+% Specify the fold
+params_dataset.kfold = 1;
+
+% Preprofile settings
+params_dataset.filename_preprofile = 'preprofile.mat';
+
+% Load from preprofile if it exists
+preprofile_path = strcat(params_dataset.path, params_dataset.filename_preprofile);
+if exist(preprofile_path, 'file') == 2
+	load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'ww', 'dictNum', 'test_nums');
+else
+	read_dataset(params_dataset, parameters);
+    load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'ww', 'dictNum', 'test_nums');
+end
+
+dictLength = length(ww);
+num_training_ex = length(dictNum(train_ind));
+
+
+
+
+
