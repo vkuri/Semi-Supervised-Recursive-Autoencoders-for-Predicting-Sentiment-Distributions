@@ -5,8 +5,8 @@ function [] = read_dataset(params_dataset, parameters)
 load(strcat(params_dataset.path,'vocab.mat'), 'words');
 
 % Randomly initialize each word in the vocabulary list with a weight
-distribution_inteval = 0.1;
-ww = (rand([parameters.word_size size(words,2)]) * 2 * distribution_inteval) - distribution_inteval;
+interval = parameters.distribution_interval;
+ww = (rand([parameters.word_size size(words,2)]) * 2 * interval) - interval;
 
 % Read the positive and negative reviews file
 file_pos = strcat(params_dataset.path, params_dataset.filename_positive);

@@ -29,6 +29,9 @@ parameters.regularization = [1e-05, 1e-04, 1e07, 1e-02];
 % Weightage for errors
 parameters.error_weightage = 0.2;
 
+% Distribution interval
+parameters.distribution_interval = 0.05;
+
 % Normalization function
 parameters.norm_func = @norm1tanh;
 
