@@ -120,8 +120,12 @@ options.Method = 'lbfgs';
 options.display = 'iter';
 options.maxFunEvals = 1e6;
 
-datacell = training_data(1:10);
+datacell = training_data;
 just_pred = 0;
+
+error = gradientChecking(init, options, ei, datacell, output, vocabulary, just_pred, 100);
+
+
 [opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, output, vocabulary, just_pred);
 
 just_pred = 1;
