@@ -31,10 +31,11 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
     
     tree = cell(2*depth-1, 1);
     
-    
     for i = 1:depth
         tree{i}.node = input(i,:)';
         tree{i}.numnodes = 1;
+        tree{i}.lc = -1;
+        tree{i}.rc = -1;
     end
    
     narray = ones(depth,1);
@@ -68,7 +69,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
                 tree{depth+d}.n2 = narray(i+1);
                 tree{depth+d}.node = p;
                 tree{depth+d}.rec = rec;
-                tree{depth+d}.act = act;+i;
+                tree{depth+d}.act = act;
                 mini = i;
                 tree{depth+d}.lc = indices(i);
                 tree{depth+d}.rc = indices(i+1);
@@ -76,6 +77,13 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
                 tree{indices(i+1)}.par = depth+d;
             end
         end
+        
+        for i = 1:2*depth-1
+            i
+            tree{i}.lc
+            tree{i}.rc
+        end
+        
         f = f + e_rec;
 %       tree{d} has the correct children and parent by this stage
 
