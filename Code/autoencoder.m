@@ -1,4 +1,4 @@
-function [f,g] = autoencoder(datacell, vocabulary, output, ei, init)
+function [f,g, pred_prob] = autoencoder(datacell, vocabulary, output, ei, init, just_pred)
 %AUTOENCODER Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -14,7 +14,11 @@ function [f,g] = autoencoder(datacell, vocabulary, output, ei, init)
 % output - txo vector - o = outputsize
 % issues : i don't understand the norm1tanh_prime function. it's giving weird answer
 
+   
     t = length(datacell);
+    
+    pred_prob = zeros(t, ei.dimensionality);
+    
     f = 0;
     g = zeros(size(init));
     init = params2stack(init, ei);
@@ -24,12 +28,20 @@ function [f,g] = autoencoder(datacell, vocabulary, output, ei, init)
         input = vocabulary(vocabIndices, :);
         %this should ideally be autoencoder(@norm1tanh, @norm1tanh_prime, init, ei, input(i,:), out(i,:));
         ei.depth = length(vocabIndices);
-        [f1 g1] = calc(@norm1tanh, @norm1tanh_prime, init, ei, input, output(i), vocabIndices);
+        [f1 g1 pred] = calc(@norm1tanh, @norm1tanh_prime, init, ei, input, output(i), vocabIndices, just_pred);
+        pred_prob(i,:) = pred;
         f = f + f1;
         g = g + g1;
     end
+    
+    if just_pred 
+        f = -1;
+        g = [];
+        return;
+    end
+    
     init = stack2params(init);
     f = f +  0.5 * ei.lambda * norm(init)^2;
-    g = g + ei.lambda*g;
+    g = g + ei.lambda*g;    
 end
 

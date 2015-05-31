@@ -1,4 +1,4 @@
-function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
+function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndices, just_pred)
     f = 0;
 %     tree structure:
 %     if a sentence has n words and each word is of dimension dim=d
@@ -100,6 +100,15 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
         input(mini+1, :) = [];
         indices(mini) = depth+d;
         indices(mini+1) = [];
+    end
+    
+    if just_pred
+        g = params.Wl*tree{2*depth-1}.node + params.bl;       %size: ox1
+        t = sigmoid(g);  
+        pred = t;
+        f = -1;
+        g = [];
+        return;
     end
     
    % tree{depth}.c1 = tree{depth-1}.p;
