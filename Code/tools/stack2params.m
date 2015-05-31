@@ -1,6 +1,6 @@
 function [params] = stack2params(stack)
 
-params = [stack.W1(:); stack.b1(:); stack.W2(:); stack.b2(:); stack.Wl(:); stack.bl(:)];
+params = [stack.W1(:); stack.b1(:); stack.W2(:); stack.b2(:); stack.Wl(:); stack.bl(:); stack.W(:)];
  
 %    assert(size(stack{d}.W1, 1) == size(stack{d}.b1, 1), ...
  %       ['The bias should be a *column* vector of ' ...

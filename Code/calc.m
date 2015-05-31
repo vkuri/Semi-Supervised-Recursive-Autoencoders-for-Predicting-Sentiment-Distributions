@@ -1,4 +1,4 @@
-function [f,g] = calc(fun, fun_prime, params, ei, input, output)
+function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
     f = 0;
 %     tree structure:
 %     if a sentence has n words and each word is of dimension dim=d
@@ -11,23 +11,40 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output)
 %     size of W2 : dx2d
 %     size of input: nxd
 
+
+%     input - size nxdim
+%     stack.W - size vxdim
+%     W - nxdim
+
+    inputCopy = input;
+    W = stack.W(vocabIndices,:);
+    input = input.*W;
+
+
     depth = ei.depth;
     %depth = inputsize
     
     dim = ei.dimensionality;
     alpha = ei.alpha;
     
-    tree = cell(depth, 1);
+    tree = cell(2*depth-1, 1);
+    
+    
+    for i = 1:depth
+        tree{i}.node = input(i,:)';
+        tree{i}.numnodes = 1;
+    end
    
     narray = ones(depth,1);
 
-    
+    indices = [1:n];
+   
     
 %     in each iteration d: the parent is constructed. we needn't construct the 
 %     parent for level d=depth, so the for loop runs only till depth-1
     for d = 1:depth-1
         mine = 10000000000000000;
-        tree{d} = struct;
+        tree{depth+d} = struct;
 %         this loop runs till when input size is > 1. that is till there is one
 %         node
         for i = 1:size(input,1)-1
@@ -40,16 +57,19 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output)
             e_rec = n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2;
             
             if e_rec < mine
-                tree{d}.c1 = input(i,:)';
-                tree{d}.c2 = input(i+1, :)';
-                tree{d}.c1c2d = c1c2d;
-                tree{d}.n1 = narray(i);
-                tree{d}.n2 = narray(i+1);
-                tree{d}.p = p;
-                tree{d}.rec = rec;
-                tree{d}.act = act;
-                mine = e_rec;
+                tree{depth+d}.c1 = input(i,:)';
+                tree{depth+d}.c2 = input(i+1, :)';
+                tree{depth+d}.c1c2d = c1c2d;
+                tree{depth+d}.n1 = narray(i);
+                tree{depth+d}.n2 = narray(i+1);
+                tree{depth+d}.node = p;
+                tree{depth+d}.rec = rec;
+                tree{depth+d}.act = act;+i;
                 mini = i;
+                tree{depth+d}.lc = indices(i);
+                tree{depth+d}.rc = indices(i+1);
+                tree{indices(i)}.par = depth+d;
+                tree{indices(i+1)}.par = depth+d;
             end
         end
         f = f + e_rec;
@@ -65,64 +85,67 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output)
         
         n = tree{d}.n1/(tree{d}.n1+tree{d}.n2);
         
-        tree{d}.gam = -alpha*[n*(tree{d}.c1 - tree{d}.c1c2d(1:dim, :)) ; (1-n)*(tree{d}.c2 - tree{d}.c1c2d(dim+1:2*dim, :))].*fun_prime(tree{d}.rec); %size: 2dx1
+        tree{depth+d}.gam = -2*alpha*[n*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :)) ; (1-n)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :))].*fun_prime(tree{depth+d}.rec); %size: 2dx1
  
-        narray(mini,:) = tree{d}.n1 + tree{d}.n2 + 1;
+        narray(mini,:) = tree{depth+d}.n1 + tree{depth+d}.n2 + 1;
         narray(mini+1,:) = [];
-        input(mini, :) = tree{d}.p;
+        
+        tree{depth+d}.numnodes = narray(mini,:);
+        
+        input(mini, :) = tree{depth+d}.p;
         input(mini+1, :) = [];
+        indices(mini) = n+i;
+        indices(mini+1) = [];
     end
     
-    tree{depth}.c1 = tree{depth-1}.p;
-    tree{depth}.c2 = zeros(dim, 1);
-    tree{depth}.del2 = zeros(dim, 1);
+   % tree{depth}.c1 = tree{depth-1}.p;
+   % tree{depth}.c2 = zeros(dim, 1);
+   % tree{depth}.del2 = zeros(dim, 1);
     
-    act = tree{depth-1}.act;                            %size dx1
-%     TODO: this equation needs to be checked
-    tree{depth}.del1 = fun_prime(act) .* (params.W2'*tree{d}.gam + params.Wl'*tree{d}.eta);  %size dx1
+   
+    dd = 2*depth-1;
+    act = tree{2*depth-1}.act;                            %size dx1
+    tree{dd}.del = fun_prime(act) .* (params.W2'*tree{dd}.gam + params.Wl'*tree{dd}.eta);  %size dx1
     
     W1l = params.W1(:, 1:dim);
     W1r = params.W1(:, dim+1:2*dim);
     
-    for d = depth-1:-1:1
+    for d = 2*depth-2:-1:1
 %         determine if current children are left or right child of the previous layer
-        if isequal(tree{d}.p, tree{d+1}.c1)
+        parent = tree{d}.par;
+        if tree{parent}.lc == d:
             V = W1l;
-            dp = tree{d+1}.del1;
         else
             V = W1r;
-            dp = tree{d+1}.del2;
         end
+        
+        dp = tree{parent}.del;
         
 %         see if the nodes are leaf nodes or not.
-        if tree{d}.n1 == 1
-            tree{d}.del1 = V'*dp;
+        if tree{d}.numnodes == 1
+            tree{d}.del = V'*dp;
         else
-            act = tree{d-1}.act;%params.W1l*tree{d}.c1 + params.b1;
-            tree{d}.del1 = fun_prime(act) .* (V*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
-        end
-        
-        if tree{d}.n2 == 1
-            tree{d}.del2 = V'*dp;
-        else
-            act = tree{d-1}.act;% params.W1r*tree{depth}.c1 + params.b1;
-            tree{d}.del2 = fun_prime(act) .* (V*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
+            act = tree{d}.act;%params.W1l*tree{d}.c1 + params.b1;
+            tree{d}.del = fun_prime(act) .* (V*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
         end
     end
     
     derivs = zeros(size(stack2params(params),1));
     derivs = params2stack(derivs, ei);
     
-    for d = 1:depth
-        derivs.W1 = derivs.W1 + [tree{d}.del1 * tree{d}.c1'; tree{d}.del2 *tree{d}.c2']'; 
-        derivs.b1 = derivs.b1 + tree{d}.del1 + tree{d}.del2;
+    for d = depth+1:dd
+        derivs.W1 = derivs.W1 + [tree{d}.del * tree{d}.c1'; tree{d}.del *tree{d}.c2']'; 
+        derivs.b1 = derivs.b1 + tree{d}.del;
         %TODO: need to check this
-        if d ~= depth
-            derivs.W2 = derivs.W2 + tree{d}.gam*tree{d}.p';
-            derivs.b2 = derivs.b2 + tree{d}.gam;
-            derivs.Wl = derivs.Wl + tree{d}.eta * tree{d}.p';
-            derivs.bl = derivs.bl + tree{d}.eta;
-        end
+        
+        derivs.W2 = derivs.W2 + tree{d}.gam*tree{d}.p';
+        derivs.b2 = derivs.b2 + tree{d}.gam;
+        derivs.Wl = derivs.Wl + tree{d}.eta * tree{d}.p';
+        derivs.bl = derivs.bl + tree{d}.eta;
+    end
+    
+    for d = 1:depth
+        derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del.*inputCopy(d,:);
     end
     g = stack2params(derivs);
 end
