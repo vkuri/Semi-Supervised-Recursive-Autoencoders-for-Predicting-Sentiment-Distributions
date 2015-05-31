@@ -85,7 +85,7 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
         
         n = tree{d}.n1/(tree{d}.n1+tree{d}.n2);
         
-        tree{depth+d}.gam = -2*alpha*[n*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :)) ; (1-n)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :))].*fun_prime(tree{depth+d}.rec); %size: 2dx1
+        tree{depth+d}.gam = -2*alpha*fun_prime(tree{depth+d}.rec)*[n*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :)) ; (1-n)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :))]; %size: 2dx1
  
         narray(mini,:) = tree{depth+d}.n1 + tree{depth+d}.n2 + 1;
         narray(mini+1,:) = [];
@@ -105,7 +105,7 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
    
     dd = 2*depth-1;
     act = tree{2*depth-1}.act;                            %size dx1
-    tree{dd}.del = fun_prime(act) .* (params.W2'*tree{dd}.gam + params.Wl'*tree{dd}.eta);  %size dx1
+    tree{dd}.del = fun_prime(act) * (params.W2'*tree{dd}.gam + params.Wl'*tree{dd}.eta);  %size dx1
     
     W1l = params.W1(:, 1:dim);
     W1r = params.W1(:, dim+1:2*dim);
@@ -126,7 +126,7 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
             tree{d}.del = V'*dp;
         else
             act = tree{d}.act;%params.W1l*tree{d}.c1 + params.b1;
-            tree{d}.del = fun_prime(act) .* (V*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
+            tree{d}.del = fun_prime(act) * (V*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
         end
     end
     

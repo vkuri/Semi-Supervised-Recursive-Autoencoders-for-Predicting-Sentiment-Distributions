@@ -1,4 +1,4 @@
-function [f,g] = autoencoder(input, output, ei, init)
+function [f,g] = autoencoder(datacell, vocabulary, output, ei, init)
 %AUTOENCODER Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -8,6 +8,7 @@ function [f,g] = autoencoder(input, output, ei, init)
 % depth = no. of words in the sentence
 % alpha - alpha value
 % lambda - lambda value
+
 % input and output --
 % input - txnxd vector
 % output - txo vector - o = outputsize
@@ -27,8 +28,10 @@ function [f,g] = autoencoder(input, output, ei, init)
     g = params2stack(stack2params(params)*0);
     init = g;
     for i = 1:t
+        vocabIndices = datacell{i};
+        input = vocabulary(vocabIndices, :);
         %this should ideally be autoencoder(@norm1tanh, @norm1tanh_prime, init, ei, input(i,:), out(i,:));
-        [f1 g1] = autoencoder(@norm1tanh, @norm1tanh, init, ei, input(i,:), out(i,:));
+        [f1 g1] = autoencoder(@norm1tanh, @norm1tanh_prime, init, ei, input(i,:), output(i,:), vocabIndices);
         f = f + f1;
         g = g + g1;
     end
