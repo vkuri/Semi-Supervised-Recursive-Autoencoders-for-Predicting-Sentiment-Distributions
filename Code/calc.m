@@ -17,7 +17,9 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
 %     W - nxdim
 
     inputCopy = input;
-    W = stack.W(vocabIndices,:);
+    W = params.W(vocabIndices,:);
+    % size(W)
+    % size(input)
     input = input.*W;
 
 
@@ -37,7 +39,7 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
    
     narray = ones(depth,1);
 
-    indices = [1:n];
+    indices = [1:depth];
    
     
 %     in each iteration d: the parent is constructed. we needn't construct the 
@@ -48,6 +50,8 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
 %         this loop runs till when input size is > 1. that is till there is one
 %         node
         for i = 1:size(input,1)-1
+            % i
+            %indices
             act = params.W1*[input(i,:) input(i+1,:)]' + params.b1;     %size: dx1
             p = fun(act);                                               %size: dx1
             rec = params.W2*p + params.b2;                              %size: 2dx1   
@@ -76,14 +80,14 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
 %       tree{d} has the correct children and parent by this stage
 
 %       This is the classification error           %Wl size: oxd
-        g = params.Wl*tree{d}.p + params.bl;       %size: ox1
+        g = params.Wl*tree{d}.node + params.bl;       %size: ox1
         t = sigmoid(g);         
-        tree{d}.eta = (1-alpha)*(t - output);      %output size: ox1
+        tree{depth+d}.eta = (1-alpha)*(t - output);      %output size: ox1
         
         e_cl = - dot(output, log(t));
         f = f + e_cl;
         
-        n = tree{d}.n1/(tree{d}.n1+tree{d}.n2);
+        n = tree{depth+d}.n1/(tree{depth+d}.n1+tree{depth+d}.n2);
         
         tree{depth+d}.gam = -2*alpha*fun_prime(tree{depth+d}.rec)*[n*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :)) ; (1-n)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :))]; %size: 2dx1
  
@@ -92,9 +96,9 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
         
         tree{depth+d}.numnodes = narray(mini,:);
         
-        input(mini, :) = tree{depth+d}.p;
+        input(mini, :) = tree{depth+d}.node;
         input(mini+1, :) = [];
-        indices(mini) = n+i;
+        indices(mini) = depth+d;
         indices(mini+1) = [];
     end
     
@@ -113,7 +117,7 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
     for d = 2*depth-2:-1:1
 %         determine if current children are left or right child of the previous layer
         parent = tree{d}.par;
-        if tree{parent}.lc == d:
+        if tree{parent}.lc == d
             V = W1l;
         else
             V = W1r;
@@ -138,14 +142,16 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output, vocabIndices)
         derivs.b1 = derivs.b1 + tree{d}.del;
         %TODO: need to check this
         
-        derivs.W2 = derivs.W2 + tree{d}.gam*tree{d}.p';
+        derivs.W2 = derivs.W2 + tree{d}.gam*tree{d}.node';
         derivs.b2 = derivs.b2 + tree{d}.gam;
-        derivs.Wl = derivs.Wl + tree{d}.eta * tree{d}.p';
+        derivs.Wl = derivs.Wl + tree{d}.eta * tree{d}.node';
         derivs.bl = derivs.bl + tree{d}.eta;
     end
     
     for d = 1:depth
-        derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del.*inputCopy(d,:);
+        % size(inputCopy(d,:))
+        % size(tree{d}.del)
+        derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del'.*inputCopy(d,:);
     end
     g = stack2params(derivs);
 end

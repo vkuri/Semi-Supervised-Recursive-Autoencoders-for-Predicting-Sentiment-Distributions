@@ -56,7 +56,7 @@ options.Method = 'lbfgs';
 params_dataset = struct;
 
 % Setting the path for the dataset
-params_dataset.path = '..\Dataset\';
+params_dataset.path = '../Dataset/';
 
 % Setting filenames for the positive and negative datasets
 params_dataset.filename_positive = 'rt-polarity.pos';
@@ -84,6 +84,35 @@ end
 
 dictLength = length(ww);
 num_training_ex = length(dictNum(train_ind));
+
+ei = struct;
+ei.dimensionality = parameters.word_size;
+ei.outputsize = 1;
+ei.alpha = parameters.error_weightage;
+ei.lambda = parameters.regularization(1);
+ei.vocab = length(ww);
+vocabulary = ww';
+datacell = dictNum;
+output = labels;
+
+dim = ei.dimensionality;
+out = ei.outputsize;
+
+params.W1 = rand(dim,2*dim);
+params.b1 = rand(dim,1);
+params.W2 = rand(2*dim,dim);
+params.b2 = rand(2*dim,1);
+params.Wl = rand(out,dim);
+params.bl = rand(out,1);
+params.W = rand(length(vocabulary),dim);
+
+init = stack2params(params);
+
+training_data = datacell(test_ind);
+testing_data = datacell(train_ind);
+
+datacell = training_data;
+
 
 
 

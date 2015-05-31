@@ -14,28 +14,21 @@ function [f,g] = autoencoder(datacell, vocabulary, output, ei, init)
 % output - txo vector - o = outputsize
 % issues : i don't understand the norm1tanh_prime function. it's giving weird answer
 
-    dim = ei.dimensionality;
-    out = ei.outputsize;
-
-    params.W1 = rand(dim,2*dim);
-    params.b1 = rand(dim,1);
-    params.W2 = rand(2*dim,dim);
-    params.b2 = rand(2*dim,1);
-    params.Wl = rand(out,dim);
-    params.bl = rand(out,1);
-
+    t = length(datacell);
     f = 0;
-    g = params2stack(stack2params(params)*0);
-    init = g;
+    g = zeros(size(init));
+    init = params2stack(init, ei);
     for i = 1:t
+        i
         vocabIndices = datacell{i};
         input = vocabulary(vocabIndices, :);
         %this should ideally be autoencoder(@norm1tanh, @norm1tanh_prime, init, ei, input(i,:), out(i,:));
-        [f1 g1] = autoencoder(@norm1tanh, @norm1tanh_prime, init, ei, input(i,:), output(i,:), vocabIndices);
+        ei.depth = length(vocabIndices);
+        [f1 g1] = calc(@norm1tanh, @norm1tanh_prime, init, ei, input, output(i), vocabIndices);
         f = f + f1;
         g = g + g1;
     end
-    
+    init = stack2params(init);
     f = f +  0.5 * ei.lambda * norm(init)^2;
     g = g + ei.lambda*g;
 end
