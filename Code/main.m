@@ -56,8 +56,8 @@ options.Method = 'lbfgs';
 params_dataset = struct;
 
 % Setting the path for the dataset
-%params_dataset.path = '../Dataset/';
-params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
+params_dataset.path = '../Dataset/';
+% params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
 
 % Setting filenames for the positive and negative datasets
 params_dataset.filename_positive = 'rt-polarity.pos';
@@ -114,22 +114,26 @@ testing_data = datacell(train_ind);
 labels_test = output(train_ind);
 labels_train = output(test_ind);
 
-datacell = training_data;
+options = struct;
+options.maxIter = 1000;
+options.Method = 'lbfgs';
+options.display = 'iter';
+options.maxFunEvals = 1e6;
 
+datacell = training_data(1:10);
 just_pred = 0;
-[opt_params,opt_value,exitflag,output] = minFunc(@autoencoder,...
-    datacell, vocabulary, output, ei, init, just_pred);
+[opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, output, vocabulary, just_pred);
 
 just_pred = 1;
 
 datacell = testing_data;
-[~, ~, pred] = autoencoder(datacell, vocabulary, output, ei, init, just_pred);
+[~, ~, pred] = autoencoder(opt_params, ei, datacell, output, vocabulary, just_pred);
 pred = 1*(pred>0.5);
 acc_test = mean(pred'==labels_test);
 fprintf('test accuracy: %f\n', acc_test);
 
 datacell = training_data;
-[~, ~, pred] = autoencode(datacell, vocabulary, output, ei, init, just_pred);
+[~, ~, pred] = autoencoder(opt_params, ei, datacell, output, vocabulary, just_pred);
 pred = 1*(pred>0.5);
 acc_train = mean(pred'==labels_train);
 fprintf('train accuracy: %f\n', acc_train);

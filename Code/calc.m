@@ -81,7 +81,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
 
 %       This is the classification error           %Wl size: oxd
         g = params.Wl*tree{d}.node + params.bl;       %size: ox1
-        t = sigmoid(g);         
+        t = sigmoid(g);       
         tree{depth+d}.eta = (1-alpha)*(t - output);      %output size: ox1
         
         e_cl = - dot(output, log(t));
@@ -163,5 +163,6 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del'.*inputCopy(d,:);
     end
     g = stack2params(derivs);
+    pred = [];
 end
     
