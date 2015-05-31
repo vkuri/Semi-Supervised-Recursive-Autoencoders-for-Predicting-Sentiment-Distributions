@@ -21,11 +21,12 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output)
    
     narray = ones(depth,1);
 
-    mine = 10000000000000000;
+    
     
 %     in each iteration d: the parent is constructed. we needn't construct the 
 %     parent for level d=depth, so the for loop runs only till depth-1
     for d = 1:depth-1
+        mine = 10000000000000000;
         tree{d} = struct;
 %         this loop runs till when input size is > 1. that is till there is one
 %         node
@@ -64,7 +65,7 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output)
         
         n = tree{d}.n1/(tree{d}.n1+tree{d}.n2);
         
-        tree{d}.gam = alpha*[n*(tree{d}.c1 - tree{d}.c1c2d(1:dim, :)) ; (1-n)*(tree{d}.c2 - tree{d}.c1c2d(dim+1:2*dim, :))].*fun_prime(tree{d}.rec); %size: 2dx1
+        tree{d}.gam = -alpha*[n*(tree{d}.c1 - tree{d}.c1c2d(1:dim, :)) ; (1-n)*(tree{d}.c2 - tree{d}.c1c2d(dim+1:2*dim, :))].*fun_prime(tree{d}.rec); %size: 2dx1
  
         narray(mini,:) = tree{d}.n1 + tree{d}.n2 + 1;
         narray(mini+1,:) = [];
@@ -72,7 +73,6 @@ function [f,g] = calc(fun, fun_prime, params, ei, input, output)
         input(mini+1, :) = [];
     end
     
- 
     tree{depth}.c1 = tree{depth-1}.p;
     tree{depth}.c2 = zeros(dim, 1);
     tree{depth}.del2 = zeros(dim, 1);
