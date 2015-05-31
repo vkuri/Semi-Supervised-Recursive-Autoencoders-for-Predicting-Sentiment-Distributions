@@ -90,7 +90,7 @@ ei = struct;
 ei.dimensionality = parameters.word_size;
 ei.outputsize = 1;
 ei.alpha = parameters.error_weightage;
-ei.lambda = parameters.regularization(1);
+ei.lambda = parameters.regularization(4);
 ei.vocab = length(ww);
 vocabulary = ww';
 datacell = dictNum;
@@ -109,6 +109,10 @@ params.W = rand(length(vocabulary),dim);
 
 init = stack2params(params);
 
+r = randperm(length(test_ind));
+test_ind = test_ind(r);
+r = randperm(length(train_ind));
+train_ind = train_ind(r);
 training_data = datacell(test_ind);
 testing_data = datacell(train_ind);
 labels_test = output(train_ind);
@@ -123,7 +127,7 @@ options.maxFunEvals = 1e6;
 datacell = training_data;
 just_pred = 0;
 
-error = gradientChecking(init, options, ei, datacell, output, vocabulary, just_pred, 100);
+error = gradientChecking(@autoencoder, init, ei, datacell, output, vocabulary, just_pred, 100);
 
 
 [opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, output, vocabulary, just_pred);

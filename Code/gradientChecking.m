@@ -12,7 +12,6 @@ function [e] = gradientChecking(fun, theta, ei, datacell, output, vocabulary, ju
 epsilon = 0.0001;
 e = 0;
 [~,g,~] = fun(theta, ei, datacell, output, vocabulary, just_pred);
-size(g)
 
 for j = 1:checks
     i = randsample(numel(theta),1);  
@@ -29,8 +28,6 @@ for j = 1:checks
     e1 = abs(g(i)-g1);
      
     e = e + e1;
-    if mod(j, 10) == 0
-        fprintf('%f, %f, %f - values\n', i, j, e/j);
-    end
+    fprintf('%f, %f, %f - values\n', i, j, e/j);
 end
 e = e/checks;

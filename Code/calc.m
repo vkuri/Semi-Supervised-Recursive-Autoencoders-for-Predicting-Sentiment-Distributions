@@ -62,6 +62,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             e_rec = n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2;
             
             if e_rec < mine
+                % fprintf('Inside loop:%f %f\n', e_rec, mine);
                 tree{depth+d}.c1 = input(i,:)';
                 tree{depth+d}.c2 = input(i+1, :)';
                 tree{depth+d}.c1c2d = c1c2d;
@@ -71,6 +72,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
                 tree{depth+d}.rec = rec;
                 tree{depth+d}.act = act;
                 mini = i;
+                mine = e_rec;
                 tree{depth+d}.lc = indices(i);
                 tree{depth+d}.rc = indices(i+1);
                 tree{indices(i)}.par = depth+d;
@@ -78,13 +80,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             end
         end
         
-        for i = 1:2*depth-1
-            i
-            tree{i}.lc
-            tree{i}.rc
-        end
-        
-        f = f + e_rec;
+        f = f + alpha * e_rec;
 %       tree{d} has the correct children and parent by this stage
 
 %       This is the classification error           %Wl size: oxd
@@ -93,7 +89,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         tree{depth+d}.eta = (1-alpha)*(t - output);      %output size: ox1
         
         e_cl = - dot(output, log(t));
-        f = f + e_cl;
+        f = f + (1 - alpha) * e_cl;
         
         n = tree{depth+d}.n1/(tree{depth+d}.n1+tree{depth+d}.n2);
         
@@ -109,6 +105,10 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         indices(mini) = depth+d;
         indices(mini+1) = [];
     end
+
+    for i = 1:2*depth-1
+        % fprintf('%d %d %d\n', i, tree{i}.lc, tree{i}.rc);
+    end
     
     if just_pred
         g = params.Wl*tree{2*depth-1}.node + params.bl;       %size: ox1
@@ -118,10 +118,6 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         g = [];
         return;
     end
-    
-   % tree{depth}.c1 = tree{depth-1}.p;
-   % tree{depth}.c2 = zeros(dim, 1);
-   % tree{depth}.del2 = zeros(dim, 1);
     
    
     dd = 2*depth-1;
@@ -147,7 +143,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             tree{d}.del = V'*dp;
         else
             act = tree{d}.act;%params.W1l*tree{d}.c1 + params.b1;
-            tree{d}.del = fun_prime(act) * (V*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
+            tree{d}.del = fun_prime(act) * (V'*dp + [params.W2]'*tree{d}.gam + params.Wl'*tree{d}.eta);
         end
     end
     
@@ -155,7 +151,8 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
     derivs = params2stack(derivs, ei);
     
     for d = depth+1:dd
-        derivs.W1 = derivs.W1 + [tree{d}.del * tree{d}.c1'; tree{d}.del *tree{d}.c2']'; 
+        % derivs.W1 = derivs.W1 + [tree{d}.del * tree{d}.c1'; tree{d}.del *tree{d}.c2']'; 
+        derivs.W1 = derivs.W1 + tree{d}.del * [tree{d}.c1; tree{d}.c2]';
         derivs.b1 = derivs.b1 + tree{d}.del;
         %TODO: need to check this
         
@@ -166,8 +163,6 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
     end
     
     for d = 1:depth
-        % size(inputCopy(d,:))
-        % size(tree{d}.del)
         derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del'.*inputCopy(d,:);
     end
     g = stack2params(derivs);
