@@ -50,6 +50,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         tree{depth+d} = struct;
 %         this loop runs till when input size is > 1. that is till there is one
 %         node
+        flag1 = 0;
         for i = 1:size(input,1)-1
             % i
             %indices
@@ -62,7 +63,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             e_rec = n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2;
             
             if e_rec < mine
-                % fprintf('Inside loop:%f %f\n', e_rec, mine);
+                flag1 = 1;
                 tree{depth+d}.c1 = input(i,:)';
                 tree{depth+d}.c2 = input(i+1, :)';
                 tree{depth+d}.c1c2d = c1c2d;
@@ -79,7 +80,10 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
                 tree{indices(i+1)}.par = depth+d;
             end
         end
-
+      %  fprintf('mine: %f %d\n', mine,d);
+        if flag1 == 0
+            flag1
+        end
         if mine == 1e50
             fprintf('mine: %f %d\n', mine,d);
         end
@@ -109,8 +113,8 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         indices(mini+1) = [];
     end
 
-    for i = 1:2*depth-1
-        % fprintf('%d %d %d\n', i, tree{i}.lc, tree{i}.rc);
+    for i = 2*depth-1:2*depth-1
+        fprintf('%d %d %d\n', i, tree{i}.lc, tree{i}.rc, depth);
     end
     
     if just_pred

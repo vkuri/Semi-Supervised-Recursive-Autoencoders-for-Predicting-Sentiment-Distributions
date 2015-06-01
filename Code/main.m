@@ -56,8 +56,8 @@ options.Method = 'lbfgs';
 params_dataset = struct;
 
 % Setting the path for the dataset
-params_dataset.path = '../Dataset/';
-% params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
+%params_dataset.path = '../Dataset/';
+ params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
 
 % Setting filenames for the positive and negative datasets
 params_dataset.filename_positive = 'rt-polarity.pos';
