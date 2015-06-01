@@ -57,7 +57,7 @@ params_dataset = struct;
 
 % Setting the path for the dataset
 params_dataset.path = '../Dataset/';
-%params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
+%  params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
 
 % Setting filenames for the positive and negative datasets
 params_dataset.filename_positive = 'rt-polarity.pos';
@@ -119,25 +119,6 @@ testing_data = datacell(train_ind);
 labels_test = output(train_ind);
 labels_train = output(test_ind);
 
-% Deleting sentences that are less than 2 words
-for i=1:length(training_data)
-    temp = training_data{i};
-    if length(temp) < 2
-        training_data(i) = [];
-        labels_train(i) = [];
-    end
-end
-
-for i=1:length(testing_data)
-    temp = testing_data{i};
-    if length(temp) < 2
-        testing_data(i) = [];
-        labels_test(i) = [];
-    end
-end
-
-
-
 options = struct;
 options.maxIter = 1000;
 options.Method = 'lbfgs';
@@ -145,32 +126,4 @@ options.display = 'iter';
 options.maxFunEvals = 1e6;
 
 datacell = training_data;
-labels = labels_train;
 just_pred = 0;
-
-% error = gradientChecking(@autoencoder, init, ei, datacell, labels, vocabulary, just_pred, 100);
-
-
-[opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, labels, vocabulary, just_pred);
-
-just_pred = 1;
-
-datacell = testing_data;
-labels = labels_test;
-[~, ~, pred] = autoencoder(opt_params, ei, datacell, labels, vocabulary, just_pred);
-pred = 1*(pred>0.5);
-acc_test = mean(pred'==labels_test);
-fprintf('test accuracy: %f\n', acc_test);
-
-datacell = training_data;
-labels = labels_train;
-[~, ~, pred] = autoencoder(opt_params, ei, datacell, labels, vocabulary, just_pred);
-pred = 1*(pred>0.5);
-acc_train = mean(pred'==labels_train);
-fprintf('train accuracy: %f\n', acc_train);
-
-
-
-
-
-

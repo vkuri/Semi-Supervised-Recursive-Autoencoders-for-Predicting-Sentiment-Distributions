@@ -69,7 +69,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
                 tree{depth+d}.c1c2d = c1c2d;
                 tree{depth+d}.n1 = narray(i);
                 tree{depth+d}.n2 = narray(i+1);
-                tree{depth+d}.node = p;
+                tree{depth+d}.node = p/norm(p);
                 tree{depth+d}.rec = rec;
                 tree{depth+d}.act = act;
                 mini = i;
@@ -87,11 +87,11 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         if mine == 1e50
             fprintf('mine: %f %d\n', mine,d);
         end
-        f = f + alpha * e_rec;
+        f = f + alpha * mine;
 %       tree{d} has the correct children and parent by this stage
 
 %       This is the classification error           %Wl size: oxd
-        g = params.Wl*tree{d}.node + params.bl;       %size: ox1
+        g = params.Wl*tree{depth +d}.node + params.bl;       %size: ox1
         t = sigmoid(g);       
         tree{depth+d}.eta = (1-alpha)*(t - output);      %output size: ox1
         
@@ -114,7 +114,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
     end
 
     for i = 2*depth-1:2*depth-1
-        fprintf('%d %d %d\n', i, tree{i}.lc, tree{i}.rc, depth);
+%         fprintf('%d %d %d\n', i, tree{i}.lc, tree{i}.rc, depth);
     end
     
     if just_pred
