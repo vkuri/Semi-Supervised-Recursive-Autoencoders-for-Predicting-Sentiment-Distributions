@@ -99,13 +99,14 @@ output = labels;
 dim = ei.dimensionality;
 out = ei.outputsize;
 
-params.W1 = rand(dim,2*dim);
-params.b1 = rand(dim,1);
-params.W2 = rand(2*dim,dim);
-params.b2 = rand(2*dim,1);
-params.Wl = rand(out,dim);
-params.bl = rand(out,1);
-params.W = rand(length(vocabulary),dim);
+r  = sqrt(6) / sqrt(2*dim+1);
+params.W1 = rand(dim,2*dim)*2*r-r;
+params.b1 = rand(dim,1)*2*r-r;
+params.W2 = rand(2*dim,dim)*2*r-r;
+params.b2 = rand(2*dim,1)*2*r-r;
+params.Wl = rand(out,dim)*2*r-4;
+params.bl = rand(out,1)*2*r-r;
+params.W = rand(length(vocabulary),dim)*2*r-r;
 
 init = stack2params(params);
 ei.paramslength = size(init,1);
