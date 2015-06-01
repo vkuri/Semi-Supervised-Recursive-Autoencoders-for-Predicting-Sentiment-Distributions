@@ -24,10 +24,14 @@ for j = 1:checks
     thetan(i) = thetan(i) - epsilon;
     [fn, ~, ~] = fun(thetan, ei, datacell, output, vocabulary, just_pred);
     
-    g1 = (fp - fn)/2*epsilon;
-    e1 = abs(g(i)-g1);
+    g1 = (fp - fn)/(2*epsilon);
+%     g(i)
+%     fp
+%     fn
+    e1 = abs(g(i)-g1)
      
     e = e + e1;
+    fprintf('%f %f %f\n',g(i),fp,fn);
     fprintf('%f, %f, %f - values\n', i, j, e/j);
 end
 e = e/checks;

@@ -3,7 +3,7 @@
 % Implementation based on Socher's paper
 % http://www.socher.org/index.php/Main/Semi-SupervisedRecursiveAutoencodersForPredictingSentimentDistributions
 % UCSD Neural Networks project CSE 291(aka CSE 253)
-% Authors : Vincent Kuri, Sanjeev Shenoy, Madhavi Yenugal
+% Authors : Vincent Kuri, Sanjeev Shenoy, Madhavi Yenugala
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Clear all variables and start training afresh
@@ -108,7 +108,7 @@ params.bl = rand(out,1);
 params.W = rand(length(vocabulary),dim);
 
 init = stack2params(params);
-
+ei.paramslength = size(init,1);
 r = randperm(length(test_ind));
 test_ind = test_ind(r);
 r = randperm(length(train_ind));
@@ -127,7 +127,7 @@ options.maxFunEvals = 1e6;
 datacell = training_data;
 just_pred = 0;
 
-error = gradientChecking(@autoencoder, init, ei, datacell, output, vocabulary, just_pred, 100);
+% error = gradientChecking(@autoencoder, init, ei, datacell, output, vocabulary, just_pred, 100);
 
 
 [opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, output, vocabulary, just_pred);

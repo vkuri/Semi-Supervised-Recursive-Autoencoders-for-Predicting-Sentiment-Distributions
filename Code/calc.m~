@@ -80,7 +80,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             end
         end
 
-        if mine == 1e50
+        if mine == 10000000000000000
             fprintf('mine: %f %d\n', mine,d);
         end
         f = f + alpha * e_rec;
@@ -150,10 +150,11 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         end
     end
     
-%     derivs = zeros(ei.paramslength);
-%     derivs = params2stack(derivs, ei);
+    derivs = zeros(ei.paramslength);
+    derivs = params2stack(derivs, ei);
     
-    derivs = initStack(ei);
+    derivs = params;
+    derivs
     
     for d = depth+1:dd
         % derivs.W1 = derivs.W1 + [tree{d}.del * tree{d}.c1'; tree{d}.del *tree{d}.c2']'; 
