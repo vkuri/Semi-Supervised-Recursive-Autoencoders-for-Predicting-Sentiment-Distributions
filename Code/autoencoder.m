@@ -24,7 +24,7 @@ function [f,g, pred_prob] = autoencoder( init, ei, datacell, output, vocabulary,
     init = params2stack(init, ei);
     for i = 1:t
         if mod(i,200) == 0
-            i
+            i;
         end
         vocabIndices = datacell{i};
         input = vocabulary(vocabIndices, :);
@@ -46,7 +46,7 @@ function [f,g, pred_prob] = autoencoder( init, ei, datacell, output, vocabulary,
     end
     
     init = stack2params(init);
-    f = f/t +  0.5 * ei.lambda * norm(init)^2
+    f = f/t +  0.5 * ei.lambda * norm(init)^2;
     g = g/t + ei.lambda*init;    
 end
 

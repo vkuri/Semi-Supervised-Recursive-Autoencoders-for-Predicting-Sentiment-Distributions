@@ -57,7 +57,7 @@ params_dataset = struct;
 
 % Setting the path for the dataset
 params_dataset.path = '../Dataset/';
-%params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
+params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
 
 % Setting filenames for the positive and negative datasets
 params_dataset.filename_positive = 'rt-polarity.pos';
@@ -148,7 +148,7 @@ datacell = training_data;
 labels = labels_train;
 just_pred = 0;
 
-% error = gradientChecking(@autoencoder, init, ei, datacell, output, vocabulary, just_pred, 100);
+% error = gradientChecking(@autoencoder, init, ei, datacell, labels, vocabulary, just_pred, 100);
 
 
 [opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, labels, vocabulary, just_pred);
