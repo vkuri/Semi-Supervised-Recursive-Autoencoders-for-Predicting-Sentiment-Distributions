@@ -57,7 +57,7 @@ params_dataset = struct;
 
 % Setting the path for the dataset
 params_dataset.path = '../Dataset/';
-params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
+%params_dataset.path = 'Semi-Supervised-Recursive-Autoencoders-for-Predicting-Sentiment-Distributions/Dataset/';
 
 % Setting filenames for the positive and negative datasets
 params_dataset.filename_positive = 'rt-polarity.pos';
@@ -119,20 +119,30 @@ testing_data = datacell(train_ind);
 labels_test = output(train_ind);
 labels_train = output(test_ind);
 
+l = length(training_data);
 % Deleting sentences that are less than 2 words
 for i=1:length(training_data)
+    if i>l
+        break;
+    end
     temp = training_data{i};
     if length(temp) < 2
         training_data(i) = [];
         labels_train(i) = [];
+        l = l-1;
     end
 end
 
+l = length(testing_data);
 for i=1:length(testing_data)
+    if i>l
+        break;
+    end
     temp = testing_data{i};
     if length(temp) < 2
         testing_data(i) = [];
         labels_test(i) = [];
+        l = l-1;
     end
 end
 
