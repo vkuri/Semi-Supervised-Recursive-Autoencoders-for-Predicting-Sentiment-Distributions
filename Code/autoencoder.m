@@ -1,4 +1,4 @@
-function [f,g, pred_prob] = autoencoder( init, ei, datacell, output, vocabulary, just_pred)
+function [f,g, pred_prob] = autoencoder( init, ei, datacell, output, just_pred)
 %AUTOENCODER Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -27,7 +27,7 @@ function [f,g, pred_prob] = autoencoder( init, ei, datacell, output, vocabulary,
             i;
         end
         vocabIndices = datacell{i};
-        input = vocabulary(vocabIndices, :);
+        input = init.W(vocabIndices, :);
         %this should ideally be autoencoder(@norm1tanh, @norm1tanh_prime, init, ei, input(i,:), out(i,:));
         ei.depth = length(vocabIndices);
         [f1 g1 pred] = calc(@norm1tanh, @norm1tanh_prime, init, ei, input, output(i), vocabIndices, just_pred);

@@ -1,5 +1,5 @@
 function out = norm1tanh_prime(x)
-%     % x = tanh(x)./norm(tanh(x))
+%     x = tanh(x)./norm(tanh(x));
 %     nrm = norm(x);
 %     y = (x-x.^3);
 %     
@@ -7,7 +7,7 @@ function out = norm1tanh_prime(x)
 
     tx = tanh(x);
     nm = norm(tx);
-    p = (eye(size(x,1))./nm) - (tx*tx')/nm^3;
+    p = (eye(size(x,1))./nm) - (tx*tx')./nm^3;
     out = diag(1-tx.^2)*p;
 
 end

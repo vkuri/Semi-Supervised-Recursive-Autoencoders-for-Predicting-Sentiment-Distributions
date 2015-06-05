@@ -49,6 +49,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         for i = 1:size(input,1)-1
             act = params.W1*[input(i,:) input(i+1,:)]' + params.b1;     %size: dx1
             p = fun(act);                                               %size: dx1
+            %p = p/norm(p);
             rec = params.W2*p + params.b2;                              %size: 2dx1   
             c1c2d = fun(rec);                                           %size: 2dx1
             n = narray(i,1)/(narray(i,1) + narray(i+1,1));  
@@ -57,9 +58,9 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
                 flag1 = 1;
                 tree{depth+d}.c1 = input(i,:)';
                 tree{depth+d}.c2 = input(i+1, :)';
-                %c1d = c1c2d(1:dim,:)/norm(c1c2d(1:dim,:));
-                %c2d = c1c2d(dim+1:2*dim,:)/norm(c1c2d(dim+1:2*dim,:));
-                %tree{depth+d}.c1c2d = [c1d; c2d];
+                c1d = c1c2d(1:dim,:)./norm(c1c2d(1:dim,:));
+                c2d = c1c2d(dim+1:2*dim,:)./norm(c1c2d(dim+1:2*dim,:));
+                tree{depth+d}.c1c2dn = [c1d; c2d];
                 tree{depth+d}.c1c2d = c1c2d;
                 tree{depth+d}.n1 = narray(i);
                 tree{depth+d}.n2 = narray(i+1);
@@ -83,7 +84,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             fprintf('mine: %f %d\n', mine,d);
         end
         f = f + alpha * mine;
-
+       
 
 %       This is the classification error           %Wl size: oxd
         g = params.Wl*tree{depth +d}.node + params.bl;       %size: ox1
@@ -97,6 +98,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         %tree{depth+d}.eta = (1-alpha)*(prediction - output);      %output size: ox1
         %e_cl = -dot(output, log(prediction));
         
+        %sum(tree{depth+d}.c1c2dn - tree{depth+d}.c1c2d)
         n = tree{depth+d}.n1/(tree{depth+d}.n1+tree{depth+d}.n2);
         
         rec1 = tree{depth+d}.rec(1:dim, :);
@@ -170,7 +172,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
     end
     
     for d = 1:depth
-        derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del'.*inputCopy(d,:);
+        derivs.W(vocabIndices(d),:) = derivs.W(vocabIndices(d),:) + tree{d}.del';
     end
     g = stack2params(derivs);
     pred = [];

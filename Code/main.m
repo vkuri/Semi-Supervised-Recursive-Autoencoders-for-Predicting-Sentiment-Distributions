@@ -160,6 +160,11 @@ just_pred = 0;
 
 % error = gradientChecking(@autoencoder, init, ei, datacell, labels, vocabulary, just_pred, 100);
 
+% error = gradientChecking(@autoencoder, init, ei, datacell, labels, just_pred, 100);
+% temp1 = datacell(2,:);
+% temp2 = labels(:,2);
+% error = gradientChecking(@autoencoder, init, ei, temp1, temp2, just_pred, 100);
+
 
 [opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, labels, vocabulary, just_pred);
 
