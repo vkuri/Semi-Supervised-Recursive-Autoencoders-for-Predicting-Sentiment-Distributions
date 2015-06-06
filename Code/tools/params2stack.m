@@ -12,4 +12,7 @@ stack.W2 = reshape(params(2*dim^2+dim+1 : 4*dim^2+dim), 2*dim, dim);
 stack.b2 = reshape(params(4*dim^2+dim+1 : 4*dim^2+3*dim), 2*dim, 1); 
 stack.Wl = reshape(params(4*dim^2+3*dim+1 : 4*dim^2+3*dim+out*dim), out, dim);
 stack.bl = reshape(params(4*dim^2+3*dim+out*dim+1:4*dim^2+3*dim+out*dim+out), out, 1);
-stack.W = reshape(params(4*dim^2+3*dim+out*dim+1+out:l), vocab, dim);
+stack.W = reshape(params(4*dim^2+3*dim+out*dim+out+1:l), vocab, dim);
+
+
+%fprintf('%d %d %d %d %d %d %d\n',2*dim^2+1,2*dim^2+dim+1,4*dim^2+dim+1,4*dim^2+3*dim+1,4*dim^2+3*dim+out*dim+1,4*dim^2+3*dim+out*dim+1+out, l);

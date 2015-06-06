@@ -13,11 +13,9 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
 %     input - size nxdim
 %     stack.W - size vxdim
 %     W - nxdim
-
     inputCopy = input;
     W = params.W(vocabIndices,:);
     input = input.*W;
-
     depth = ei.depth;
     %depth = inputsize
     
@@ -53,20 +51,23 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
             rec = params.W2*p + params.b2;                              %size: 2dx1   
             c1c2d = fun(rec);                                           %size: 2dx1
             n = narray(i,1)/(narray(i,1) + narray(i+1,1));  
-            e_rec = n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2;
+            e_rec = 1*(n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2);
             if e_rec < mine
                 flag1 = 1;
                 tree{depth+d}.c1 = input(i,:)';
                 tree{depth+d}.c2 = input(i+1, :)';
                 c1d = c1c2d(1:dim,:)./norm(c1c2d(1:dim,:));
                 c2d = c1c2d(dim+1:2*dim,:)./norm(c1c2d(dim+1:2*dim,:));
-                tree{depth+d}.c1c2dn = [c1d; c2d];
+                tree{depth+d}.c1c2d = [c1d; c2d];
                 tree{depth+d}.c1c2d = c1c2d;
                 tree{depth+d}.n1 = narray(i);
                 tree{depth+d}.n2 = narray(i+1);
-                %tree{depth+d}.node = p/norm(p);
                 tree{depth+d}.node = p;
                 tree{depth+d}.rec = rec;
+                tree{depth+d}.delc1 = alpha*n*(tree{depth+d}.c1 - c1c2d(1:dim,:));
+                tree{depth+d}.delc2 = alpha*(1-n)*(tree{depth+d}.c2 - c1c2d(dim+1:2*dim,:));
+                tree{depth+d}.delc1 = 0;
+                tree{depth+d}.delc2 = 0;
                 tree{depth+d}.act = act;
                 mini = i;
                 mine = e_rec;
@@ -83,20 +84,20 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         if mine == 1e50
             fprintf('mine: %f %d\n', mine,d);
         end
+      
         f = f + alpha * mine;
-       
-
+      
 %       This is the classification error           %Wl size: oxd
         g = params.Wl*tree{depth +d}.node + params.bl;       %size: ox1
         prediction = sigmoid(g);
         
-        e_cl = 0.5*(prediction-output)^2;
-        f = f + (1 - alpha) * e_cl;
-        
+        e_cl = 0.5*(prediction-output)^2;      
         tree{depth+d}.eta = (1-alpha)*(prediction - output)*prediction*(1-prediction);
-        
-        %tree{depth+d}.eta = (1-alpha)*(prediction - output);      %output size: ox1
-        %e_cl = -dot(output, log(prediction));
+  
+%         tree{depth+d}.eta = (1-alpha)*(prediction - output);      %output size: ox1
+%         e_cl = -dot(output, log(prediction));
+%         
+        f = f + (1 - alpha) * e_cl;
         
         %sum(tree{depth+d}.c1c2dn - tree{depth+d}.c1c2d)
         n = tree{depth+d}.n1/(tree{depth+d}.n1+tree{depth+d}.n2);
@@ -146,23 +147,25 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         parent = tree{d}.par;
         if tree{parent}.lc == d
             V = W1l;
+            delc = tree{parent}.delc1;
         else
             V = W1r;
+            delc = tree{parent}.delc2;
         end
         
         dp = tree{parent}.del;
         
 %         see if the nodes are leaf nodes or not.
         if tree{d}.numnodes == 1
-            tree{d}.del = V'*dp;
+            tree{d}.del = V'*dp + delc;
         else
             act = tree{d}.act;
-            tree{d}.del = fun_prime(act) * (V'*dp + params.W2'*tree{d}.gam + params.Wl'*tree{d}.eta);
+            tree{d}.del = fun_prime(act) * (V'*dp + params.W2'*tree{d}.gam + params.Wl'*tree{d}.eta) + delc;
         end
     end
     
     derivs = initStack(ei);
-    for d = depth+1:dd
+    for d = depth+1:dd    
         derivs.W1 = derivs.W1 + tree{d}.del * [tree{d}.c1; tree{d}.c2]';
         derivs.b1 = derivs.b1 + tree{d}.del;
         derivs.W2 = derivs.W2 + tree{d}.gam*tree{d}.node';

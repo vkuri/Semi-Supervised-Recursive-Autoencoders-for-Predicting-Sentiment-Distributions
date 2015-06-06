@@ -1,4 +1,4 @@
-function [e] = gradientChecking(fun, theta, ei, datacell, output, vocabulary, just_pred, checks)
+function [e] = gradientChecking(fun, theta, ei, datacell, output, just_pred, checks)
   %
   % Arguments:
   %   fun - Accepts the function over which the gradient has to be verified
@@ -9,26 +9,26 @@ function [e] = gradientChecking(fun, theta, ei, datacell, output, vocabulary, ju
   %   y - The label for each example.  y(j) is the j'th example's label.
   %
 
-epsilon = 1e-1
+epsilon = 1e-2
 e = 0;
-[~,g,~] = fun(theta, ei, datacell, output, vocabulary, just_pred);
+[~,g,~] = fun(theta, ei, datacell, output, just_pred);
 just_pred = 0;
 for j = 1:checks
     i = randsample(numel(theta),1);  
-    i = randsample(1000,1);  
-    i = 2;
+    i = randsample(30,1);  
+    i = 100;
     thetap = theta;
     thetap(i) = thetap(i) + epsilon;
-    [fp, ~, ~] = fun(thetap, ei, datacell, output, vocabulary, just_pred);
+    [fp, ~, ~] = fun(thetap, ei, datacell, output, just_pred);
     
     thetan = theta;
     thetan(i) = thetan(i) - epsilon;
-    [fn, ~, ~] = fun(thetan, ei, datacell, output, vocabulary, just_pred);
+    [fn, ~, ~] = fun(thetan, ei, datacell, output, just_pred);
     
     g1 = (fp - fn)/(2*epsilon);
     e1 = abs(g(i)-g1);
     e = e + e1;
-    fprintf('%d %f %f %f\n', i, g1, g(i), e1);
+    fprintf('%d %f %f %f %f %f\n', i, g1, g(i), fp, fn, e1);
     %fprintf('%d %f %f %f %f %f\n',i, g(i),g1, fp,fn, e1);
     %fprintf('%f, %f, %f - values\n', i, j, e/j);
 end

@@ -44,7 +44,6 @@ function [f,g, pred_prob] = autoencoder( init, ei, datacell, output, just_pred)
         g = [];
         return;
     end
-    
     init = stack2params(init);
     f = f/t +  0.5 * ei.lambda * norm(init)^2;
     g = g/t + ei.lambda*init;    

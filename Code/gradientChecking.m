@@ -16,7 +16,10 @@ just_pred = 0;
 for j = 1:checks
     i = randsample(numel(theta),1);  
     i = randsample(30,1);  
-    i = 5006;
+%     %i = 10203+j;
+%     %i = 5001;
+     i = 5006+j;
+%     i = 5150 +j;
     thetap = theta;
     thetap(i) = thetap(i) + epsilon;
     [fp, ~, ~] = fun(thetap, ei, datacell, output, just_pred);
@@ -29,7 +32,7 @@ for j = 1:checks
     e1 = abs(g(i)-g1);
     e = e + e1;
     fprintf('%d %f %f %f %f %f\n', i, g1, g(i), fp, fn, e1);
-    %fprintf('%d %f %f %f %f %f\n',i, g(i),g1, fp,fn, e1);
+    %fprintf('%d %f %f %f %f %f\n',i, g(i),g1, fp,fn, e1;
     %fprintf('%f, %f, %f - values\n', i, j, e/j);
 end
 e = e/checks
