@@ -1,5 +1,4 @@
 function tree = buildtree(fun, fun_prime, params, ei, parameters, input, label, update_flag, existing_tree)
-	W = params.W(vocabIndices,:);
     depth = ei.depth;
     dim = ei.dimensionality;
     alpha = ei.alpha;
@@ -13,6 +12,7 @@ function tree = buildtree(fun, fun_prime, params, ei, parameters, input, label, 
         tree{i}.numnodes = 1;
         tree{i}.lc = -1;
         tree{i}.rc = -1;
+        tree{i}.par = -1;
     end
 
 	if update_flag == 0
@@ -39,7 +39,7 @@ function tree = buildtree(fun, fun_prime, params, ei, parameters, input, label, 
 	            if e_rec < mine
 	                tree{depth+d}.c1 = input(i,:)';
 	                tree{depth+d}.c2 = input(i+1, :)';
-	                tree{depth+d}.c1c2dn = [c1n; c2n];
+	                tree{depth+d}.c1c2dn = [y1; y2];
 	                tree{depth+d}.c1c2d = c1c2d;
 	                tree{depth+d}.y1c1 = y1c1;
 	                tree{depth+d}.y2c2 = y2c2;
@@ -74,14 +74,15 @@ function tree = buildtree(fun, fun_prime, params, ei, parameters, input, label, 
 	else
 		%classify single words
 		for d=1:depth
-			sig = sigmoid(params.Wl*input + params.bl);
+			sig = sigmoid(params.Wl*input(d,:)' + params.bl);
 			pred = (1 - alpha) * (label - sig);
 			tree{d}.e_cl = 1/2*(pred * (label - sig));
 			tree{d}.delta = -pred*sigmoid_prime(sig);
+			tree{d}.par = existing_tree{d}.par;
 		end
 
 		for d=depth+1:2*depth-1
-			p = fun(params.W1*[existing_tree{d}.c1 existing_tree{d}.c2]' + params.b1);
+			p = fun(params.W1*[existing_tree{d}.c1;existing_tree{d}.c2] + params.b1);
 			p_norm = p./norm(p);
 			sig = sigmoid(params.Wl*p_norm + params.bl);
 			pred = beta * (1 - alpha) * (label - sig);
@@ -93,6 +94,18 @@ function tree = buildtree(fun, fun_prime, params, ei, parameters, input, label, 
 			tree{d}.rc = existing_tree{d}.rc;
 			tree{d}.n1 = existing_tree{d}.n1;
 			tree{d}.n2 = existing_tree{d}.n2;
+			tree{d}.gam1 = existing_tree{d}.gam1;
+			tree{d}.gam2 = existing_tree{d}.gam2;
+			tree{d}.numnodes = existing_tree{d}.numnodes;
+			tree{d}.c1 = existing_tree{d}.c1;
+			tree{d}.c2 = existing_tree{d}.c2;
+			tree{d}.y1c1 = existing_tree{d}.y1c1;
+			tree{d}.y2c2 = existing_tree{d}.y2c2;
+			
+			
+			if isfield(existing_tree{d},'par')
+				tree{d}.par = existing_tree{d}.par;
+			end
 			tree{d}.p_norm = p_norm;
 			tree{d}.node = p;
 		end

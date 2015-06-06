@@ -1,4 +1,4 @@
-function [e] = gradientChecking(fun, theta, ei, datacell, output, just_pred, checks)
+function [e] = gradientChecking(fun, theta, ei, parameters, datacell, output, vocabulary, checks)
   %
   % Arguments:
   %   fun - Accepts the function over which the gradient has to be verified
@@ -11,22 +11,22 @@ function [e] = gradientChecking(fun, theta, ei, datacell, output, just_pred, che
 
 epsilon = 1e-6
 e = 0;
-[~,g,~] = fun(theta, ei, datacell, output, just_pred);
+[~,g] = fun(theta, ei, parameters, datacell, output, vocabulary);
 just_pred = 0;
 for j = 1:checks
-    i = randsample(numel(theta),1);  
+    % i = randsample(numel(theta),1);  
     % i = randsample(30,1);  
 %     %i = 10203+j;
 %     %i = 5001;
-%     i = 5006+j;
+     i = 5006+j;
 %     i = 5150 +j;
     thetap = theta;
     thetap(i) = thetap(i) + epsilon;
-    [fp, ~, ~] = fun(thetap, ei, datacell, output, just_pred);
+    [fp, ~] = fun(thetap, ei, parameters, datacell, output, vocabulary);
     
     thetan = theta;
     thetan(i) = thetan(i) - epsilon;
-    [fn, ~, ~] = fun(thetan, ei, datacell, output, just_pred);
+    [fn, ~] = fun(thetan, ei, parameters, datacell, output, vocabulary);
     
     g1 = (fp - fn)/(2*epsilon);
     e1 = abs(g(i)-g1);

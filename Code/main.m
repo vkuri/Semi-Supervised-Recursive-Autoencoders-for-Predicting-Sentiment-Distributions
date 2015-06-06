@@ -170,9 +170,10 @@ options.maxIter = 70;
 options.Method = 'lbfgs';
 options.display = 'iter';
 
-datacell = training_data;
-labels = labels_train;
+datacell = testing_data(2);
+labels = labels_test(2);
 
+% gradientChecking(@autoencoder, init, ei, parameters, datacell, labels, vocabulary, 100);
 
 [opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, parameters, datacell, labels, vocabulary);
 

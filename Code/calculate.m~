@@ -33,10 +33,9 @@ function [f,g,tree] = calculate(fun, fun_prime, params, ei, parameters, input, v
 	    parent = tree{d}.par;
 	    if tree{parent}.lc == d
 	    	V = W1l;
-            extra = tree{parent}.y1c1;
+            extra = tree{}
 	    else
 	    	V = W1r;
-            extra = tree{parent}.y2c2;
 	    end
 
 	    dp = tree{parent}.del;
@@ -45,19 +44,19 @@ function [f,g,tree] = calculate(fun, fun_prime, params, ei, parameters, input, v
     	if tree{d}.numnodes == 1
     		if update_flag == 0
     			% Figure out which node
-    			gradSentence(:,d) = gradSentence(:,d) + V'*dp - extra;
+    			gradSentence(:,d) = gradSentence(:,d) + V'*dp;
     		else
     			derivs.Wl = derivs.Wl + tree{d}.delta * input(d,:);
     			derivs.bl = derivs.bl + tree{d}.delta;
-    			gradSentence(:,d) = gradSentence(:,d) + V'*dp + params.Wl'*tree{d}.delta - extra;
+    			gradSentence(:,d) = gradSentence(:,d) + V'*dp + params.Wl'*tree{d}.delta;
     		end
     	else
 	        if update_flag == 0
-	        	tree{d}.del = fun_prime(tree{d}.node) * (V'*dp + W21*tree{d}.gam1 + W22*tree{d}.gam2 - extra);
+	        	tree{d}.del = fun_prime(tree{d}.node) * (V'*dp + W21*tree{d}.gam1 + W22*tree{d}.gam2);
 	        else
 	        	derivs.bl = derivs.bl + tree{d}.delta;
 	        	derivs.Wl = derivs.Wl + tree{d}.delta * tree{d}.p_norm';
-	        	tree{d}.del = fun_prime(tree{d}.node) * (V'*dp + W21*tree{d}.gam1 + W22*tree{d}.gam2 + params.Wl'* tree{d}.delta - extra);
+	        	tree{d}.del = fun_prime(tree{d}.node) * (V'*dp + W21*tree{d}.gam1 + W22*tree{d}.gam2 + params.Wl'* tree{d}.delta);
             end
             
             
