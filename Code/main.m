@@ -118,6 +118,7 @@ params.bl = rand(out,1)*2*r-r;
 params.W = 1e-3*(rand(length(vocabulary),dim)*2*r-r);
 
 init = stack2params(params);
+
 ei.paramslength = size(init,1);
 r = randperm(length(test_ind));
 test_ind = test_ind(r);
@@ -159,10 +160,9 @@ end
 
 
 options = struct;
-options.maxIter = 1000;
+options.maxIter = 70;
 options.Method = 'lbfgs';
 options.display = 'iter';
-options.maxFunEvals = 1e6;
 
 datacell = training_data;
 labels = labels_train;
