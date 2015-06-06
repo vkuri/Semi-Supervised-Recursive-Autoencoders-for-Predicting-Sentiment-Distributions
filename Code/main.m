@@ -113,7 +113,7 @@ params.W1 = rand(dim,2*dim)*2*r-r;
 params.b1 = rand(dim,1)*2*r-r;
 params.W2 = rand(2*dim,dim)*2*r-r;
 params.b2 = rand(2*dim,1)*2*r-r;
-params.Wl = rand(out,dim)*2*r-4;
+params.Wl = rand(out,dim)*2*r-r;
 params.bl = rand(out,1)*2*r-r;
 params.W = 1e-3*(rand(length(vocabulary),dim)*2*r-r);
 
