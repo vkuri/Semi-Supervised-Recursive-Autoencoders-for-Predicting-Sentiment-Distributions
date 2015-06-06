@@ -72,16 +72,25 @@ params_dataset.cv_obj = 'cv_obj.mat';
 params_dataset.kfold = 1;
 
 % Preprofile settings
+% params_dataset.filename_preprofile = 'preprofile_our.mat';
 params_dataset.filename_preprofile = 'preprofile.mat';
 
 % Load from preprofile if it exists
 preprofile_path = strcat(params_dataset.path, params_dataset.filename_preprofile);
 if exist(preprofile_path, 'file') == 2
-	load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'ww', 'dictNum', 'test_nums');
+    % load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'ww', 'dictNum', 'test_nums');
+    load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'We2', 'allSNum', 'test_nums');
 else
-	read_dataset(params_dataset, parameters);
-    load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'ww', 'dictNum', 'test_nums');
+    read_dataset(params_dataset, parameters);
+    % load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'ww', 'dictNum', 'test_nums');
+    load(preprofile_path, 'labels','train_ind','test_ind', 'cv_ind', 'We2', 'allSNum', 'test_nums');
 end
+
+
+% Comment if we are using our own preprofile.mat
+ww = We2;
+dictNum = allSNum;
+% End Comment
 
 dictLength = length(ww);
 num_training_ex = length(dictNum(train_ind));
@@ -106,7 +115,7 @@ params.W2 = rand(2*dim,dim)*2*r-r;
 params.b2 = rand(2*dim,1)*2*r-r;
 params.Wl = rand(out,dim)*2*r-4;
 params.bl = rand(out,1)*2*r-r;
-params.W = rand(length(vocabulary),dim)*2*r-r;
+params.W = 1e-3*(rand(length(vocabulary),dim)*2*r-r);
 
 init = stack2params(params);
 ei.paramslength = size(init,1);
@@ -114,10 +123,11 @@ r = randperm(length(test_ind));
 test_ind = test_ind(r);
 r = randperm(length(train_ind));
 train_ind = train_ind(r);
-training_data = datacell(test_ind);
-testing_data = datacell(train_ind);
-labels_test = output(train_ind);
-labels_train = output(test_ind);
+
+training_data = datacell(train_ind);
+testing_data = datacell(test_ind);
+labels_test = output(test_ind);
+labels_train = output(train_ind);
 
 l = length(training_data);
 % Deleting sentences that are less than 2 words
