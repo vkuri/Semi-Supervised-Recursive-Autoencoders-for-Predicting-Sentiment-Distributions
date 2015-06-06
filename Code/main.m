@@ -32,8 +32,14 @@ parameters.error_weightage = 0.2;
 % Distribution interval
 parameters.distribution_interval = 0.05;
 
+% Weightage of cost for nonterminals
+parameters.beta = 0.5;
+
 % Normalization function
 parameters.norm_func = @norm1tanh;
+
+% Normalization function prime
+parameters.norm_func_prime = @norm1tanh_prime;
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 % Minfunc parameters
@@ -166,17 +172,9 @@ options.display = 'iter';
 
 datacell = training_data;
 labels = labels_train;
-just_pred = 0;
-
-% error = gradientChecking(@autoencoder, init, ei, datacell, labels, vocabulary, just_pred, 100);
-
-% error = gradientChecking(@autoencoder, init, ei, datacell, labels, just_pred, 100);
-% temp1 = datacell(2,:);
-% temp2 = labels(:,2);
-% error = gradientChecking(@autoencoder, init, ei, temp1, temp2, just_pred, 100);
 
 
-[opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, datacell, labels, vocabulary, just_pred);
+[opt_params,opt_value,exitflag,out1] = minFunc(@autoencoder,init, options, ei, parameters, datacell, labels, vocabulary);
 
 just_pred = 1;
 

@@ -15,7 +15,7 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
 %     W - nxdim
     inputCopy = input;
     W = params.W(vocabIndices,:);
-    input = input.*W;
+    % input = input.*W;
     depth = ei.depth;
     %depth = inputsize
     
@@ -47,21 +47,40 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         for i = 1:size(input,1)-1
             act = params.W1*[input(i,:) input(i+1,:)]' + params.b1;     %size: dx1
             p = fun(act);                                               %size: dx1
+            p_norm = bsxfun(@rdivide,p,sqrt(sum(p.^2,1)));
             %p = p/norm(p);
-            rec = params.W2*p + params.b2;                              %size: 2dx1   
+            rec = params.W2*p_norm + params.b2;                              %size: 2dx1   
             c1c2d = fun(rec);                                           %size: 2dx1
+            c1n = bsxfun(@rdivide,c1c2d(1:dim,:),norm(c1c2d(1:dim,:)));
+            c2n = bsxfun(@rdivide,c1c2d(dim+1:2*dim,:),norm(c1c2d(dim+1:2*dim,:)));
+
+            y1 = c1c2d(1:dim,:);
+            y2 = c1c2d(dim+1:2*dim,:);
+            y1c1 = alpha*(y1-input(i,:)');
+            y2c2 = alpha*(y2-input(i+1,:)');
+            
+            e_rec = 1/2*sum((y1c1.*(y1-input(i,:)')) + (y2c2.*(y2-input(i+1,:)')));
+
             n = narray(i,1)/(narray(i,1) + narray(i+1,1));  
-            e_rec = 1*(n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2);
+            % e_rec = 1*(n * (norm(input(i,:)' - c1c2d(1:dim,:)))^2 + (1-n)*(norm(input(i+1,:)' - c1c2d(dim+1:2*dim,:)))^2);
+
             if e_rec < mine
                 flag1 = 1;
                 tree{depth+d}.c1 = input(i,:)';
                 tree{depth+d}.c2 = input(i+1, :)';
-                c1d = c1c2d(1:dim,:)./norm(c1c2d(1:dim,:));
-                c2d = c1c2d(dim+1:2*dim,:)./norm(c1c2d(dim+1:2*dim,:));
-                tree{depth+d}.c1c2d = [c1d; c2d];
+                
+                tree{depth+d}.c1c2dn = [c1n; c2n];
                 tree{depth+d}.c1c2d = c1c2d;
+                tree{depth+d}.y1 = y1;
+                tree{depth+d}.y2 = y2;
+                tree{depth+d}.y1c1 = y1c1;
+                tree{depth+d}.y2c2 = y2c2;
+                tree{depth+d}.e_rec = e_rec;
+                tree{depth+d}.p_norm = p_norm;
+
                 tree{depth+d}.n1 = narray(i);
                 tree{depth+d}.n2 = narray(i+1);
+
                 tree{depth+d}.node = p;
                 tree{depth+d}.rec = rec;
                 tree{depth+d}.delc1 = alpha*n*(tree{depth+d}.c1 - c1c2d(1:dim,:));
@@ -102,20 +121,25 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         %sum(tree{depth+d}.c1c2dn - tree{depth+d}.c1c2d)
         n = tree{depth+d}.n1/(tree{depth+d}.n1+tree{depth+d}.n2);
         
-        rec1 = tree{depth+d}.rec(1:dim, :);
-        rec2 = tree{depth+d}.rec(dim+1:2*dim, :);
-        gam1 = fun_prime(rec1)*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :));
-        gam2 = fun_prime(rec2)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :));
-       
+        rec1 = tree{depth+d}.c1c2d(1:dim, :);
+        rec2 = tree{depth+d}.c1c2d(dim+1:2*dim, :);
+        % gam1 = fun_prime(rec1)*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :));
+        % gam2 = fun_prime(rec2)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :));
+        gam1 = fun_prime(rec1)*tree{depth+d}.y1c1;
+        gam2 = fun_prime(rec2)*tree{depth+d}.y2c2;
+
+        tree{depth+d}.gam1 = gam1;
+        tree{depth+d}.gam2 = gam2;
+        
         tree{depth+d}.gam = -2*alpha*[n*gam1 ; (1-n)*gam2]; %size: 2dx1
         %tree{depth+d}.gam = -2*alpha*fun_prime(tree{depth+d}.rec)*[n*(tree{depth+d}.c1 - tree{depth+d}.c1c2d(1:dim, :)) ; (1-n)*(tree{depth+d}.c2 - tree{depth+d}.c1c2d(dim+1:2*dim, :))]; %size: 2dx1
  
-        narray(mini,:) = tree{depth+d}.n1 + tree{depth+d}.n2 + 1;
+        narray(mini,:) = tree{depth+d}.n1 + tree{depth+d}.n2;
         narray(mini+1,:) = [];
      
         tree{depth+d}.numnodes = narray(mini,:);
         
-        input(mini, :) = tree{depth+d}.node;
+        input(mini, :) = tree{depth+d}.p_norm;
         input(mini+1, :) = [];
         indices(mini) = depth+d;
         indices(mini+1) = [];
@@ -136,8 +160,8 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
     
    
     dd = 2*depth-1;
-    act = tree{2*depth-1}.act;                            %size dx1
-    tree{dd}.del = fun_prime(act) * (params.W2'*tree{dd}.gam + params.Wl'*tree{dd}.eta);  %size dx1
+    node = tree{2*depth-1}.node;                            %size dx1
+    tree{dd}.del = fun_prime(node) * (params.W2'*tree{dd}.gam + params.Wl'*tree{dd}.eta);  %size dx1
     
     W1l = params.W1(:, 1:dim);
     W1r = params.W1(:, dim+1:2*dim);
@@ -159,17 +183,19 @@ function [f,g, pred] = calc(fun, fun_prime, params, ei, input, output, vocabIndi
         if tree{d}.numnodes == 1
             tree{d}.del = V'*dp + delc;
         else
-            act = tree{d}.act;
-            tree{d}.del = fun_prime(act) * (V'*dp + params.W2'*tree{d}.gam + params.Wl'*tree{d}.eta) + delc;
+            node = tree{d}.node;
+            W21 = params.W2(:,1:dim);
+            W22 = params.W2(:,dim+1,2*dim);
+            tree{d}.del = fun_prime(node) * (V'*dp + W21*tree{d}.gam1 + W22*tree{d}.gam2);
         end
     end
     
     derivs = initStack(ei);
     for d = depth+1:dd    
-        derivs.W1 = derivs.W1 + tree{d}.del * [tree{d}.c1; tree{d}.c2]';
+        derivs.W1 = derivs.W1 + tree{d}.del * tree{d}.p_norm';
         derivs.b1 = derivs.b1 + tree{d}.del;
         derivs.W2 = derivs.W2 + tree{d}.gam*tree{d}.node';
-        derivs.b2 = derivs.b2 + tree{d}.gam;
+        derivs.b2 = derivs.b2 + [tree{d}.gam1*tree{d}.p_norm' tree{d}.gam2*tree{d}.p_norm'];
         derivs.Wl = derivs.Wl + tree{d}.eta * tree{d}.node';
         derivs.bl = derivs.bl + tree{d}.eta;
     end
